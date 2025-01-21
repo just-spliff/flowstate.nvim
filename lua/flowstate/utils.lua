@@ -1,62 +1,26 @@
 local M = {}
-
 local config = require("flowstate.config")
 
-local win_id = nil
-local buf_id = nil
+-- Włącz centrowanie w poziomie
+M.enable_centering = function()
+	local win_width = vim.api.nvim_get_option("columns") -- Szerokość ekranu
+	local text_width = config.settings.text_width
 
--- Tworzenie wyśrodkowanego okna
-M.center_window = function()
-	local ui = vim.api.nvim_list_uis()[1]
-	local win_width = config.settings.window_width
-	local win_height = config.settings.window_height
-	local col = math.floor((ui.width - win_width) / 2)
-	local row = math.floor((ui.height - win_height) / 2)
+	-- Oblicz marginesy po obu stronach
+	local side_margin = math.max(0, math.floor((win_width - text_width) / 2))
 
-	-- Utwórz tymczasowy bufor
-	buf_id = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_option(buf_id, "bufhidden", "wipe")
-
-	-- Otwórz okno pływające
-	win_id = vim.api.nvim_open_win(buf_id, true, {
-		relative = "editor",
-		width = win_width,
-		height = win_height,
-		col = col,
-		row = row,
-		style = "minimal",
-		border = config.settings.border,
-	})
-
-	-- Dodaj przykładowy tekst
-	vim.api.nvim_buf_set_lines(buf_id, 0, -1, false, {
-		"🧘 Focus Mode ",
-	})
+	-- Ustaw marginesy i wyśrodkowanie
+	vim.api.nvim_win_set_option(0, "wrap", false) -- Wyłącz zawijanie linii
+	vim.api.nvim_win_set_option(0, "winhighlight", "Normal:Normal") -- Styl okna
+	vim.api.nvim_buf_set_option(0, "textwidth", text_width) -- Ustaw szerokość tekstu
+	vim.api.nvim_win_set_option(0, "sidescrolloff", side_margin) -- Marginesy boczne
 end
 
--- Zamknij okno
-M.close_window = function()
-	if win_id and vim.api.nvim_win_is_valid(win_id) then
-		vim.api.nvim_win_close(win_id, true)
-	end
-	win_id = nil
-	buf_id = nil
-end
-
--- Ukryj interfejs
-M.hide_ui = function()
-	if config.settings.hide_statusline then
-		vim.opt.laststatus = 0
-	end
-	if config.settings.hide_tabline then
-		vim.opt.showtabline = 0
-	end
-end
-
--- Przywróć interfejs
-M.restore_ui = function()
-	vim.opt.laststatus = 3
-	vim.opt.showtabline = 2
+-- Wyłącz centrowanie
+M.disable_centering = function()
+	vim.api.nvim_win_set_option(0, "sidescrolloff", 0) -- Przywróć marginesy
+	vim.api.nvim_win_set_option(0, "wrap", true) -- Przywróć zawijanie linii
+	vim.api.nvim_buf_set_option(0, "textwidth", 0) -- Wyłącz ograniczenie szerokości
 end
 
 return M
