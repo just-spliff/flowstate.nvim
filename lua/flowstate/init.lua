@@ -8,9 +8,11 @@ M.toggle = function()
 	if config.is_active then
 		utils.disable_centering()
 		config.is_active = false
+		vim.notify("Flowstate mode disabled")
 	else
 		utils.enable_centering()
 		config.is_active = true
+		vim.notify("Flowstate mode enabled")
 	end
 end
 
